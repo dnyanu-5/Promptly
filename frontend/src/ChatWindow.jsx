@@ -1,15 +1,15 @@
-import { useContext ,useState } from 'react';
-import chat from './Chat.jsx'
+import { useContext, useState, useEffect } from 'react';
+import Chat from './Chat.jsx'
 import "./ChatWindow.css"
 import { MyContext } from './MyContext.jsx';
-import {RingLoader} from "react-spinners";
+import { RingLoader } from "react-spinners";
 
 function ChatWindow() {
 
-    const { prompt, setPrompt, reply, setReply,currThreadId } = useContext(MyContext);
+    const { prompt, setPrompt, reply, setReply, currThreadId, prevChats, setPrevChats } = useContext(MyContext);
     const [loading, setLoading] = useState(false);
 
-    const getReply=async ()=>{
+    const getReply = async () => {
 
         setLoading(true);
         // setNewChat(false);
@@ -31,11 +31,28 @@ function ChatWindow() {
             const res = await response.json();
             console.log(res);
             setReply(res.reply);
-        } catch(err) {
+        } catch (err) {
             console.log(err);
         }
         setLoading(false);
     }
+    // appending new chats
+
+    useEffect(() => {
+        if(prompt && reply) {
+            setPrevChats(prevChats => (
+                [...prevChats, {
+                    role: "user",
+                    content: prompt
+                },{
+                    role: "assistant",
+                    content: reply
+                }]
+            ));
+        }
+
+        setPrompt("");
+    }, [reply]);
 
     return (
         <div className="chatwindow">
@@ -46,15 +63,15 @@ function ChatWindow() {
                     <span className='userIcon'><i className="fa-solid fa-user"></i></span>
                 </div>
             </div>
-            {/* <Chat></Chat> */}
+            <Chat></Chat>
             <RingLoader color="#fff" loading={loading}>
             </RingLoader>
 
             <div className="chatInput">
                 <div className="inputBox">
-                    <input placeholder='Ask anything!' value={prompt} 
-                    onChange={(e)=>{setPrompt(e.target.value)}}
-                    onKeyDown={(e) => e.key === 'Enter'? getReply() : ''}>
+                    <input placeholder='Ask anything!' value={prompt}
+                        onChange={(e) => { setPrompt(e.target.value) }}
+                        onKeyDown={(e) => e.key === 'Enter' ? getReply() : ''}>
                     </input>
                     <div id='submit' onClick={getReply}><i className="fa-solid fa-paper-plane"></i></div>
 
